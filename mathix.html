@@ -1,0 +1,2305 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mathix</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .phone-container {
+            width: 375px;
+            height: 812px;
+            margin: 20px auto;
+            background: #000;
+            border-radius: 40px;
+            padding: 10px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #f8f9fa;
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .page {
+            display: none;
+            height: 100%;
+            overflow-y: auto;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 50px 20px 20px;
+            position: relative;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .streak-counter {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .notification-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        /* Daily Goal Section */
+        .daily-goal {
+            background: white;
+            margin: 20px;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .goal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .goal-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .progress-circle {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .progress-ring {
+            width: 80px;
+            height: 80px;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring-bg {
+            fill: none;
+            stroke: #e5e7eb;
+            stroke-width: 6;
+        }
+
+        .progress-ring-progress {
+            fill: none;
+            stroke: #6366f1;
+            stroke-width: 6;
+            stroke-linecap: round;
+            stroke-dasharray: 226;
+            stroke-dashoffset: 170;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: 700;
+            font-size: 16px;
+            color: #6366f1;
+        }
+
+        /* Slider */
+        .slider-container {
+            margin: 20px 0;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: #e5e7eb;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+        }
+
+        /* Stats boxes */
+        .stats-boxes {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            flex: 1;
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            padding: 15px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #6366f1;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        /* Calendar */
+        .calendar {
+            background: white;
+            margin: 20px;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .calendar-header {
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .calendar-day.today {
+            background: #6366f1;
+            color: white;
+        }
+
+        .calendar-day.completed::after {
+            content: '✓';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: #10b981;
+            color: white;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            font-size: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 0 25px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .nav-item.active {
+            color: #6366f1;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .nav-label {
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .plus-btn {
+            background: #6366f1;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            border: none;
+            cursor: pointer;
+            margin-top: -10px;
+            box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Clubs Page */
+        .clubs-header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 50px 20px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .clubs-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .create-club-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .premium-section {
+            padding: 20px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+        .club-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .club-card.premium {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+        }
+
+        .club-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .club-name {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .club-price {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .club-info {
+            font-size: 14px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        .join-btn {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .join-btn:hover {
+            background: #5856eb;
+        }
+
+        .join-btn.joined {
+            background: #10b981;
+            cursor: default;
+        }
+
+        /* Club Detail Page */
+        .club-detail-page {
+            background: #f8f9fa;
+            height: 100%;
+            overflow-y: auto;
+            padding-bottom: 100px;
+        }
+
+        .club-detail-header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 50px 20px 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .club-detail-title {
+            flex: 1;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .club-members-count {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+
+        /* Social Feed */
+        .post {
+            background: white;
+            margin: 15px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .post-header {
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .post-user-info {
+            flex: 1;
+        }
+
+        .post-username {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1f2937;
+        }
+
+        .post-time {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .post-image {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(135deg, #e5e7eb, #d1d5db);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+            font-size: 48px;
+        }
+
+        .post-actions {
+            padding: 15px;
+            display: flex;
+            gap: 20px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+
+        .post-action {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .post-action:hover {
+            color: #6366f1;
+        }
+
+        .post-action.liked {
+            color: #ef4444;
+        }
+
+        .post-content {
+            padding: 0 15px 15px;
+        }
+
+        .post-likes {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .post-caption {
+            font-size: 14px;
+            color: #1f2937;
+            line-height: 1.4;
+        }
+
+        .post-comments {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .comment {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .comment-username {
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .comment-text {
+            color: #4b5563;
+        }
+
+        .view-all-comments {
+            color: #6b7280;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Create Club Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin: 20px;
+            width: calc(100% - 40px);
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1f2937;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-input:focus {
+            border-color: #6366f1;
+        }
+
+        .form-textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        .toggle-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .toggle-option {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .toggle-option.selected {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+
+        /* Progress Page */
+        .progress-page {
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .stat-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+        .chart-placeholder {
+            height: 120px;
+            background: linear-gradient(135deg, #e0e7ff, #c7d2fe);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6366f1;
+            font-weight: 600;
+        }
+
+        /* Profile Page */
+        .profile-header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 50px 20px 30px;
+            text-align: center;
+        }
+
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 40px;
+            background: rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 15px;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .profile-goal {
+            font-size: 16px;
+            opacity: 0.8;
+        }
+
+        .achievements {
+            padding: 20px;
+        }
+
+        .achievement-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .achievement-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .achievement-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .achievement-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        /* Onboarding Styles */
+        .onboarding-page {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 20px 20px;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .onboarding-step {
+            display: none;
+        }
+
+        .onboarding-step.active {
+            display: block;
+        }
+
+        .onboarding-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .onboarding-subtitle {
+            font-size: 16px;
+            opacity: 0.8;
+            margin-bottom: 40px;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-label {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .onboarding-input {
+            width: 100%;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            outline: none;
+        }
+
+        .onboarding-input:focus {
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        .onboarding-input::placeholder {
+            color: rgba(255,255,255,0.6);
+        }
+
+        .study-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .day-selector {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 12px 8px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .day-selector.selected {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            font-weight: 600;
+        }
+
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 30px 0;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transition: background 0.3s ease;
+        }
+
+        .dot.active {
+            background: white;
+        }
+
+        .onboarding-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: white;
+            color: #6366f1;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .calculation-result {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+        }
+
+        .result-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .daily-questions {
+            font-size: 48px;
+            font-weight: 700;
+            color: #fbbf24;
+            margin: 15px 0;
+        }
+
+        .result-explanation {
+            font-size: 14px;
+            opacity: 0.8;
+            line-height: 1.5;
+        }
+
+        /* Animation */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Micro Info Section */
+        .micro-info-section {
+            background: white;
+            margin: 15px 20px;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .micro-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .micro-info-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+
+        .toggle-micro {
+            background: #6366f1;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .micro-details {
+            display: none;
+            animation: fadeInDown 0.3s ease-out;
+        }
+
+        .micro-details.active {
+            display: block;
+        }
+
+        .topic-selector {
+            margin-bottom: 15px;
+        }
+
+        .topic-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .topic-chip {
+            background: #f3f4f6;
+            border: 2px solid transparent;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .topic-chip.selected {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+
+        .performance-inputs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .performance-input {
+            text-align: center;
+        }
+
+        .performance-input label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #6b7280;
+        }
+
+        .performance-input input {
+            width: 100%;
+            padding: 10px 8px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 600;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .performance-input input:focus {
+            border-color: #6366f1;
+        }
+
+        .performance-input.correct input {
+            border-color: #10b981;
+            color: #10b981;
+        }
+
+        .performance-input.wrong input {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .performance-input.empty input {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .save-session-btn {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 15px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 15px;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .save-session-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        /* Progress Analytics */
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .analytics-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .analytics-number {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .analytics-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .accuracy-ring {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 10px;
+        }
+
+        .accuracy-ring svg {
+            width: 60px;
+            height: 60px;
+            transform: rotate(-90deg);
+        }
+
+        .accuracy-ring .ring-progress {
+            fill: none;
+            stroke: #10b981;
+            stroke-width: 4;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .accuracy-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 12px;
+            font-weight: 700;
+            color: #10b981;
+        }
+
+        .topic-analysis {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        .topic-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .topic-name {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .topic-stats {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .topic-accuracy {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .topic-count {
+            font-size: 12px;
+            color: #6b7280;
+        }
+
+        .weakness-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-left: 8px;
+        }
+
+        .weakness-indicator.good {
+            background: #10b981;
+        }
+
+        .weakness-indicator.average {
+            background: #f59e0b;
+        }
+
+        .weakness-indicator.needs-work {
+            background: #ef4444;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="screen">
+            <!-- Onboarding Page -->
+            <div class="page active" id="onboarding">
+                <div class="onboarding-page">
+                    <!-- Step 1: Welcome -->
+                    <div class="onboarding-step active" id="step1">
+                        <div>
+                            <div class="onboarding-title fade-in-up">Mathix'e Hoşgeldin! 🎯</div>
+                            <div class="onboarding-subtitle fade-in-up">YKS hedefine ulaşman için kişiselleştirilmiş günlük soru planını oluşturalım</div>
+                        </div>
+                        
+                        <div class="progress-dots">
+                            <div class="dot active"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                        
+                        <div class="onboarding-buttons">
+                            <button class="btn-primary" onclick="nextStep()">Başlayalım</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Target Ranking -->
+                    <div class="onboarding-step" id="step2">
+                        <div>
+                            <div class="onboarding-title">Hedef Sıralaman Nedir?</div>
+                            <div class="onboarding-subtitle">YKS'de ulaşmak istediğin sıralama hedefini gir</div>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Hedeflenen YKS Sıralaması</label>
+                                <input type="number" class="onboarding-input" placeholder="örn: 5000" id="targetRank">
+                            </div>
+                        </div>
+                        
+                        <div class="progress-dots">
+                            <div class="dot active"></div>
+                            <div class="dot active"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                        
+                        <div class="onboarding-buttons">
+                            <button class="btn-secondary" onclick="prevStep()">Geri</button>
+                            <button class="btn-primary" onclick="nextStep()">Devam</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Study Days -->
+                    <div class="onboarding-step" id="step3">
+                        <div>
+                            <div class="onboarding-title">Çalışma Planın</div>
+                            <div class="onboarding-subtitle">Haftada hangi günleri matematik çalışmayı planlıyorsun?</div>
+                            
+                            <div class="input-group">
+                                <label class="input-label">Çalışma Günlerin (Tıklayarak seç)</label>
+                                <div class="study-days">
+                                    <div class="day-selector" data-day="1">Pzt</div>
+                                    <div class="day-selector" data-day="2">Sal</div>
+                                    <div class="day-selector" data-day="3">Çar</div>
+                                    <div class="day-selector" data-day="4">Per</div>
+                                    <div class="day-selector" data-day="5">Cum</div>
+                                    <div class="day-selector" data-day="6">Cmt</div>
+                                    <div class="day-selector" data-day="7">Paz</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-dots">
+                            <div class="dot active"></div>
+                            <div class="dot active"></div>
+                            <div class="dot active"></div>
+                            <div class="dot"></div>
+                            <div class="dot"></div>
+                        </div>
+                        
+                        <div class="onboarding-buttons">
+                            <button class="btn-secondary" onclick="prevStep()">Geri</button>
+                            <button class="btn-primary" onclick="nextStep()">Devam</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Current Performance -->
+                    <div class="onboarding-step" id="step4">
+                        <div>
+                            <div class="onboarding-title">Mevcut Performansın</div>
+                            <div class="onboarding-subtitle">Son deneme sınavlarındaki matematik netlerini gir</div>
+                            
+                            <div class="input-group">
+                                <label class="input-label">TYT Matematik Net</label>
+                                <input type="number" class="onboarding-input" placeholder="örn: 25" id="tytNet" min="0" max="40">
+                            </div>
+                            
+                            <div class="input-group">
+                                <label class="input-label">AYT Matematik Net</label>
+                                <input type="number" class="onboarding-input" placeholder="örn: 15" id="aytNet" min="0" max="40">
+                            </div>
+                        </div>
+                        
+                        <div class="progress-dots">
+                            <div class="dot active"></div>
+                            <div class="dot active"></div>
+                            <div class="dot active"></div>
+                            <div class="dot active"></div>
+                            <div class="dot"></div>
+                        </div>
+                        
+                        <div class="onboarding-buttons">
+                            <button class="btn-secondary" onclick="prevStep()">Geri</button>
+                            <button class="btn-primary" onclick="calculatePlan()">Planı Oluştur</button>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Result -->
+                    <div class="onboarding-step" id="step5">
+                        <div>
+                            <div class="onboarding-title">Planın Hazır! 🚀</div>
+                            <div class="onboarding-subtitle">Hedefine ulaşmak için kişiselleştirilmiş günlük planın:</div>
+                            
+                            <div class="calculation-result">
+                                <div class="result-title">Günlük Soru Hedefin</div>
+                                <div class="daily-questions" id="calculatedQuestions">42</div>
+                                <div class="result-explanation" id="planExplanation">
+                                    5.000 sıralama hedefin için TYT'de 35, AYT'de 25 net yapman gerekiyor. 
+                                    Mevcut performansına göre günde 42 soru çözerek 3 ayda hedefe ulaşabilirsin.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-dots">
+                            <div class="dot active"></div>
+                            <div class="dot active"></div>
+                            <div class="dot active"></div>
+                            <div class="dot active"></div>
+                            <div class="dot active"></div>
+                        </div>
+                        
+                        <div class="onboarding-buttons">
+                            <button class="btn-secondary" onclick="prevStep()">Düzenle</button>
+                            <button class="btn-primary" onclick="completeOnboarding()">Başla</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Home Page -->
+            <div class="page" id="home">
+                <div class="header">
+                    <div class="header-top">
+                        <div class="logo">Mathix</div>
+                        <div class="header-right">
+                            <div class="streak-counter" id="streakCounter">🔥 7 gün</div>
+                            <button class="notification-btn">🔔</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="daily-goal">
+                    <div class="goal-header">
+                        <div class="goal-text">Günlük Hedef: <span id="dailyGoal">50</span> Soru</div>
+                        <div class="progress-circle">
+                            <svg class="progress-ring" width="80" height="80">
+                                <circle class="progress-ring-bg" cx="40" cy="40" r="36"/>
+                                <circle class="progress-ring-progress" cx="40" cy="40" r="36" id="progressRing"/>
+                            </svg>
+                            <div class="progress-text" id="progressText">60%</div>
+                        </div>
+                    </div>
+                    
+                    <div class="slider-container">
+                        <input type="range" class="slider" id="questionSlider" min="0" max="50" value="30">
+                    </div>
+
+                    <div class="stats-boxes">
+                        <div class="stat-box">
+                            <div class="stat-number" id="solvedCount">30</div>
+                            <div class="stat-label">Çözülen</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number" id="remainingCount">20</div>
+                            <div class="stat-label">Kalan</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="calendar">
+                    <div class="calendar-header">Bu Hafta</div>
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendar will be generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Micro Info Section -->
+                <div class="micro-info-section">
+                    <div class="micro-info-header">
+                        <div class="micro-info-title">📊 Detayları Kaydet</div>
+                        <button class="toggle-micro" onclick="toggleMicroInfo()">Aç</button>
+                    </div>
+                    
+                    <div class="micro-details" id="microDetails">
+                        <div class="topic-selector">
+                            <label class="form-label" style="margin-bottom: 8px; display: block; font-size: 14px;">Çözülen Konular</label>
+                            <div class="topic-chips">
+                                <div class="topic-chip" onclick="toggleTopic(this)" data-topic="türev">Türev</div>
+                                <div class="topic-chip" onclick="toggleTopic(this)" data-topic="integral">İntegral</div>
+                                <div class="topic-chip" onclick="toggleTopic(this)" data-topic="limit">Limit</div>
+                                <div class="topic-chip" onclick="toggleTopic(this)" data-topic="trigonometri">Trigonometri</div>
+                                <div class="topic-chip" onclick="toggleTopic(this)" data-topic="geometri">Geometri</div>
+                                <div class="topic-chip" onclick="toggleTopic(this)" data-topic="logaritma">Logaritma</div>
+                                <div class="topic-chip" onclick="toggleTopic(this)" data-topic="fonksiyon">Fonksiyon</div>
+                                <div class="topic-chip" onclick="toggleTopic(this)" data-topic="dizi">Dizi</div>
+                            </div>
+                        </div>
+
+                        <div class="performance-inputs">
+                            <div class="performance-input correct">
+                                <label>✅ Doğru</label>
+                                <input type="number" id="correctCount" min="0" value="0" onchange="updatePerformance()">
+                            </div>
+                            <div class="performance-input wrong">
+                                <label>❌ Yanlış</label>
+                                <input type="number" id="wrongCount" min="0" value="0" onchange="updatePerformance()">
+                            </div>
+                            <div class="performance-input empty">
+                                <label>⭕ Boş</label>
+                                <input type="number" id="emptyCount" min="0" value="0" onchange="updatePerformance()">
+                            </div>
+                        </div>
+
+                        <button class="save-session-btn" onclick="saveSession()">
+                            <span id="saveBtnText">📝 Oturumu Kaydet</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clubs Page -->
+            <div class="page" id="clubs">
+                <div class="clubs-header">
+                    <div class="clubs-title">Kulüpler</div>
+                    <button class="create-club-btn" onclick="openCreateClubModal()">+</button>
+                </div>
+
+                <div class="premium-section">
+                    <div class="section-title">✨ Premium Kulüpler</div>
+                    
+                    <div class="club-card premium">
+                        <div class="club-header">
+                            <div>
+                                <div class="club-name">🔥 HBÖ Trigonometri Kulübü</div>
+                                <div style="font-size: 12px; opacity: 0.8; margin-top: 2px;">1,234 üye • Canlı dersler</div>
+                            </div>
+                            <div class="club-price">49 TL/ay</div>
+                        </div>
+                        <div class="club-info">Haftalık canlı dersler, özel soru bankası ve detaylı çözüm videoları</div>
+                        <button class="join-btn" onclick="joinClub(this)">Katıl</button>
+                    </div>
+
+                    <div class="club-card premium">
+                        <div class="club-header">
+                            <div>
+                                <div class="club-name">📐 Geometri Master Kulübü</div>
+                                <div style="font-size: 12px; opacity: 0.8; margin-top: 2px;">856 üye • Görsel anlatım</div>
+                            </div>
+                            <div class="club-price">39 TL/ay</div>
+                        </div>
+                        <div class="club-info">3D görselleştirme, pratik çözüm teknikleri ve özel notlar</div>
+                        <button class="join-btn" onclick="joinClub(this)">Katıl</button>
+                    </div>
+
+                    <div class="club-card premium">
+                        <div class="club-header">
+                            <div>
+                                <div class="club-name">🎯 Limit İntegral Pro</div>
+                                <div style="font-size: 12px; opacity: 0.8; margin-top: 2px;">567 üye • İleri seviye</div>
+                            </div>
+                            <div class="club-price">59 TL/ay</div>
+                        </div>
+                        <div class="club-info">İleri seviye sorular, birebir mentörlük ve sınav stratejileri</div>
+                        <button class="join-btn" onclick="joinClub(this)">Katıl</button>
+                    </div>
+                </div>
+
+                <div class="premium-section">
+                    <div class="section-title">🆓 Ücretsiz Kulüpler</div>
+                    
+                    <div class="club-card" onclick="openClubDetail('night-study')">
+                        <div class="club-header">
+                            <div>
+                                <div class="club-name">🌙 Gece Çalışanlar Kulübü</div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">2,453 üye • 23:00-03:00 aktif</div>
+                            </div>
+                        </div>
+                        <div class="club-info">Geç saatlerde çalışan arkadaşlarınla motivasyonunu yüksek tut</div>
+                        <button class="join-btn joined" onclick="event.stopPropagation()">Katıldın ✓</button>
+                    </div>
+
+                    <div class="club-card" onclick="openClubDetail('graduates')">
+                        <div class="club-header">
+                            <div>
+                                <div class="club-name">🎓 Mezunlar Kulübü</div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">1,876 üye • Deneyim paylaşımı</div>
+                            </div>
+                        </div>
+                        <div class="club-info">Sınava hazırlanan mezunların tecrübe ve motivasyon paylaşımları</div>
+                        <button class="join-btn" onclick="event.stopPropagation(); joinClub(this)">Katıl</button>
+                    </div>
+
+                    <div class="club-card" onclick="openClubDetail('500challenge')">
+                        <div class="club-header">
+                            <div>
+                                <div class="club-name">⚡ 500 Soru Challenge</div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">892 üye • #haftasonu500türevsorusu</div>
+                            </div>
+                        </div>
+                        <div class="club-info">Her hafta sonu toplu çalışma ve soru maratonu etkinlikleri</div>
+                        <button class="join-btn" onclick="event.stopPropagation(); joinClub(this)">Katıl</button>
+                    </div>
+
+                    <div class="club-card" onclick="openClubDetail('earlybirds')">
+                        <div class="club-header">
+                            <div>
+                                <div class="club-name">🌅 Sabah Kuşları</div>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">645 üye • 05:00-08:00 aktif</div>
+                            </div>
+                        </div>
+                        <div class="club-info">Erkenden kalkan ve sabah çalışmayı seven öğrenciler için</div>
+                        <button class="join-btn" onclick="event.stopPropagation(); joinClub(this)">Katıl</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Club Detail Page -->
+            <div class="page" id="club-detail">
+                <div class="club-detail-page">
+                    <div class="club-detail-header">
+                        <button class="back-btn" onclick="showPage('clubs')">←</button>
+                        <div class="club-detail-title" id="clubDetailTitle">🌙 Gece Çalışanlar Kulübü</div>
+                        <div class="club-members-count">2,453 üye</div>
+                    </div>
+
+                    <!-- Social Feed -->
+                    <div class="post">
+                        <div class="post-header">
+                            <div class="user-avatar">AY</div>
+                            <div class="post-user-info">
+                                <div class="post-username">Ahmet Yıldız</div>
+                                <div class="post-time">2 saat önce</div>
+                            </div>
+                        </div>
+                        <div class="post-image">📸</div>
+                        <div class="post-actions">
+                            <div class="post-action" onclick="toggleLike(this)">
+                                <span>❤️</span>
+                                <span>Beğen</span>
+                            </div>
+                            <div class="post-action">
+                                <span>💬</span>
+                                <span>Yorum</span>
+                            </div>
+                            <div class="post-action">
+                                <span>📤</span>
+                                <span>Paylaş</span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-likes">42 beğeni</div>
+                            <div class="post-caption">Bu türev sorusunu çözemedim, yardım edebilir misiniz? 🤔 #türev #yardım</div>
+                            <div class="post-comments">
+                                <div class="comment">
+                                    <span class="comment-username">mehmet_95:</span>
+                                    <span class="comment-text">Önce zincir kuralını uygula, sonra sadeleştir</span>
+                                </div>
+                                <div class="comment">
+                                    <span class="comment-username">zeynep_math:</span>
+                                    <span class="comment-text">u=x²+1 şeklinde substitüsyon yapabilirsin</span>
+                                </div>
+                                <div class="view-all-comments">3 yorumun tümünü gör</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="post">
+                        <div class="post-header">
+                            <div class="user-avatar">MK</div>
+                            <div class="post-user-info">
+                                <div class="post-username">Merve Kaya</div>
+                                <div class="post-time">4 saat önce</div>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-likes">18 beğeni</div>
+                            <div class="post-caption">Bugün 50 soru hedefimi tamamladım! 💪 Gece çalışması gerçekten daha verimli geçiyor. #motivation #50soru</div>
+                            <div class="post-comments">
+                                <div class="comment">
+                                    <span class="comment-username">ali_2024:</span>
+                                    <span class="comment-text">Helal olsun! Ben de bu gece 45 soru yapmaya çalışacağım</span>
+                                </div>
+                                <div class="view-all-comments">7 yorumun tümünü gör</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="post">
+                        <div class="post-header">
+                            <div class="user-avatar">EÖ</div>
+                            <div class="post-user-info">
+                                <div class="post-username">Ege Özkan</div>
+                                <div class="post-time">1 gün önce</div>
+                            </div>
+                        </div>
+                        <div class="post-image">📊</div>
+                        <div class="post-actions">
+                            <div class="post-action liked" onclick="toggleLike(this)">
+                                <span>❤️</span>
+                                <span>Beğen</span>
+                            </div>
+                            <div class="post-action">
+                                <span>💬</span>
+                                <span>Yorum</span>
+                            </div>
+                            <div class="post-action">
+                                <span>📤</span>
+                                <span>Paylaş</span>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            <div class="post-likes">67 beğeni</div>
+                            <div class="post-caption">Limit soruları için hazırladığım özet tablo. Umarım işinize yarar! 📚 #limit #özet #paylaşım</div>
+                            <div class="post-comments">
+                                <div class="comment">
+                                    <span class="comment-username">selin_study:</span>
+                                    <span class="comment-text">Çok faydalı olmuş, teşekkürler!</span>
+                                </div>
+                                <div class="comment">
+                                    <span class="comment-username">can_math:</span>
+                                    <span class="comment-text">Bu tabloyu kullanarak 15 soru daha çözdüm 🔥</span>
+                                </div>
+                                <div class="view-all-comments">12 yorumun tümünü gör</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Club Modal -->
+            <div class="modal" id="createClubModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">Yeni Kulüp Oluştur</div>
+                        <button class="close-btn" onclick="closeCreateClubModal()">×</button>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Kulüp Adı</label>
+                        <input type="text" class="form-input" placeholder="örn: Matematik Severler">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Açıklama</label>
+                        <textarea class="form-input form-textarea" placeholder="Kulübünüzün amacını kısaca açıklayın..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Kulüp Türü</label>
+                        <div class="toggle-group">
+                            <div class="toggle-option selected" onclick="selectClubType(this, 'free')">🆓 Ücretsiz</div>
+                            <div class="toggle-option" onclick="selectClubType(this, 'premium')">✨ Premium</div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-primary" style="width: 100%; margin-top: 20px;" onclick="createClub()">Kulübü Oluştur</button>
+                </div>
+            </div>
+
+            <!-- Progress Page -->
+            <div class="page" id="progress">
+                <div class="header">
+                    <div class="header-top">
+                        <div class="logo">📈 İlerleme Analizi</div>
+                    </div>
+                </div>
+
+                <div class="progress-page">
+                    <!-- Quick Stats -->
+                    <div class="analytics-grid">
+                        <div class="analytics-card">
+                            <div class="analytics-number" style="color: #10b981;" id="totalCorrect">247</div>
+                            <div class="analytics-label">Toplam Doğru</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-number" style="color: #ef4444;" id="totalWrong">83</div>
+                            <div class="analytics-label">Toplam Yanlış</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="accuracy-ring">
+                                <svg>
+                                    <circle class="ring-bg" cx="30" cy="30" r="26"/>
+                                    <circle class="ring-progress" cx="30" cy="30" r="26" id="accuracyRing" 
+                                            style="stroke-dasharray: 163; stroke-dashoffset: 49;"/>
+                                </svg>
+                                <div class="accuracy-text" id="accuracyText">75%</div>
+                            </div>
+                            <div class="analytics-label">Doğruluk Oranı</div>
+                        </div>
+                        <div class="analytics-card">
+                            <div class="analytics-number" style="color: #6366f1;" id="studyDays">12</div>
+                            <div class="analytics-label">Çalışma Günü</div>
+                        </div>
+                    </div>
+
+                    <!-- Topic Analysis -->
+                    <div class="topic-analysis">
+                        <div class="stat-card-title">🎯 Konu Bazlı Analiz</div>
+                        
+                        <div class="topic-row">
+                            <div class="topic-name">📈 Türev</div>
+                            <div class="topic-stats">
+                                <div class="topic-accuracy" style="color: #10b981;">85%</div>
+                                <div class="topic-count">67 soru</div>
+                                <div class="weakness-indicator good"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="topic-row">
+                            <div class="topic-name">📐 Geometri</div>
+                            <div class="topic-stats">
+                                <div class="topic-accuracy" style="color: #f59e0b;">72%</div>
+                                <div class="topic-count">45 soru</div>
+                                <div class="weakness-indicator average"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="topic-row">
+                            <div class="topic-name">🌊 Trigonometri</div>
+                            <div class="topic-stats">
+                                <div class="topic-accuracy" style="color: #ef4444;">58%</div>
+                                <div class="topic-count">31 soru</div>
+                                <div class="weakness-indicator needs-work"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="topic-row">
+                            <div class="topic-name">🔢 Limit</div>
+                            <div class="topic-stats">
+                                <div class="topic-accuracy" style="color: #10b981;">91%</div>
+                                <div class="topic-count">42 soru</div>
+                                <div class="weakness-indicator good"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="topic-row">
+                            <div class="topic-name">∫ İntegral</div>
+                            <div class="topic-stats">
+                                <div class="topic-accuracy" style="color: #f59e0b;">69%</div>
+                                <div class="topic-count">28 soru</div>
+                                <div class="weakness-indicator average"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Weekly Performance Chart -->
+                    <div class="stat-card">
+                        <div class="stat-card-title">📊 Haftalık Performans Trendi</div>
+                        <div class="chart-placeholder">
+                            <div style="display: flex; justify-content: space-between; align-items: end; height: 80px; padding: 0 20px;">
+                                <div style="width: 8px; height: 45px; background: #6366f1; border-radius: 4px;"></div>
+                                <div style="width: 8px; height: 60px; background: #8b5cf6; border-radius: 4px;"></div>
+                                <div style="width: 8px; height: 35px; background: #6366f1; border-radius: 4px;"></div>
+                                <div style="width: 8px; height: 70px; background: #10b981; border-radius: 4px;"></div>
+                                <div style="width: 8px; height: 55px; background: #6366f1; border-radius: 4px;"></div>
+                                <div style="width: 8px; height: 80px; background: #10b981; border-radius: 4px;"></div>
+                                <div style="width: 8px; height: 50px; background: #6366f1; border-radius: 4px;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 10px; color: #6b7280;">
+                                <span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recommendations -->
+                    <div class="stat-card">
+                        <div class="stat-card-title">💡 Öneriler</div>
+                        <div style="space-y: 10px;">
+                            <div style="padding: 12px; background: #fef3c7; border-radius: 10px; margin-bottom: 10px;">
+                                <div style="font-weight: 600; color: #92400e; margin-bottom: 5px;">⚠️ Dikkat Edilmesi Gereken Konu</div>
+                                <div style="font-size: 14px; color: #451a03;">Trigonometri konusunda %58 başarı oranın var. Bu konuda daha fazla pratik yapmanı öneririm.</div>
+                            </div>
+                            <div style="padding: 12px; background: #d1fae5; border-radius: 10px; margin-bottom: 10px;">
+                                <div style="font-weight: 600; color: #065f46; margin-bottom: 5px;">🎯 Güçlü Olduğun Konu</div>
+                                <div style="font-size: 14px; color: #064e3b;">Limit konusunda %91 başarı oranın harika! Bu tempoyu koruyarak diğer konulara da odaklan.</div>
+                            </div>
+                            <div style="padding: 12px; background: #e0e7ff; border-radius: 10px;">
+                                <div style="font-weight: 600; color: #3730a3; margin-bottom: 5px;">📚 Haftalık Hedef</div>
+                                <div style="font-size: 14px; color: #312e81;">Bu hafta toplamda 280 soru çözmeyi hedefliyorsun. Şu ana kadar 167 soru çözdün!</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Page -->
+            <div class="page" id="profile">
+                <div class="profile-header">
+                    <div class="profile-avatar">👤</div>
+                    <div class="profile-name">Ahmet Yılmaz</div>
+                    <div class="profile-goal">Hedef Sıralama: 5.000</div>
+                </div>
+
+                <div class="achievements">
+                    <div class="section-title">Başarılar</div>
+                    <div class="achievement-grid">
+                        <div class="achievement-card">
+                            <div class="achievement-icon">🔥</div>
+                            <div class="achievement-title">7 Günlük Seri</div>
+                        </div>
+                        <div class="achievement-card">
+                            <div class="achievement-icon">📚</div>
+                            <div class="achievement-title">500 Soru</div>
+                        </div>
+                        <div class="achievement-card">
+                            <div class="achievement-icon">🎯</div>
+                            <div class="achievement-title">Hedef Master</div>
+                        </div>
+                        <div class="achievement-card">
+                            <div class="achievement-icon">👥</div>
+                            <div class="achievement-title">Kulüp Üyesi</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <div class="bottom-nav">
+                <div class="nav-item active" onclick="showPage('home')">
+                    <div class="nav-icon">🏠</div>
+                    <div class="nav-label">Ana Sayfa</div>
+                </div>
+                <div class="nav-item" onclick="showPage('clubs')">
+                    <div class="nav-icon">👥</div>
+                    <div class="nav-label">Kulüpler</div>
+                </div>
+                <button class="plus-btn" onclick="shareQuestion()">+</button>
+                <div class="nav-item" onclick="showPage('progress')">
+                    <div class="nav-icon">📊</div>
+                    <div class="nav-label">İlerleme</div>
+                </div>
+                <div class="nav-item" onclick="showPage('profile')">
+                    <div class="nav-icon">👤</div>
+                    <div class="nav-label">Profil</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSolved = 30;
+        let dailyGoal = 50;
+        let currentStep = 1;
+        let selectedDays = [];
+        let selectedTopics = [];
+        let sessionData = {
+            topics: [],
+            correct: 0,
+            wrong: 0,
+            empty: 0,
+            date: new Date().toISOString().split('T')[0]
+        };
+        let userData = {
+            targetRank: 0,
+            studyDays: [],
+            tytNet: 0,
+            aytNet: 0,
+            calculatedQuestions: 0
+        };
+
+        // Onboarding functionality
+        function nextStep() {
+            if (currentStep < 5) {
+                if (validateCurrentStep()) {
+                    document.getElementById(`step${currentStep}`).classList.remove('active');
+                    currentStep++;
+                    document.getElementById(`step${currentStep}`).classList.add('active');
+                    document.getElementById(`step${currentStep}`).classList.add('fade-in-up');
+                    updateProgressDots();
+                }
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                document.getElementById(`step${currentStep}`).classList.remove('active');
+                currentStep--;
+                document.getElementById(`step${currentStep}`).classList.add('active');
+                document.getElementById(`step${currentStep}`).classList.add('fade-in-up');
+                updateProgressDots();
+            }
+        }
+
+        function updateProgressDots() {
+            const dots = document.querySelectorAll('.dot');
+            dots.forEach((dot, index) => {
+                if (index < currentStep) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        function validateCurrentStep() {
+            switch(currentStep) {
+                case 2:
+                    const rank = document.getElementById('targetRank').value;
+                    if (!rank || rank <= 0) {
+                        alert('Lütfen geçerli bir sıralama hedefi girin');
+                        return false;
+                    }
+                    userData.targetRank = parseInt(rank);
+                    return true;
+                case 3:
+                    if (selectedDays.length === 0) {
+                        alert('Lütfen en az bir çalışma günü seçin');
+                        return false;
+                    }
+                    userData.studyDays = [...selectedDays];
+                    return true;
+                case 4:
+                    const tyt = document.getElementById('tytNet').value;
+                    const ayt = document.getElementById('aytNet').value;
+                    if (!tyt || !ayt || tyt < 0 || ayt < 0) {
+                        alert('Lütfen geçerli net sayıları girin');
+                        return false;
+                    }
+                    userData.tytNet = parseInt(tyt);
+                    userData.aytNet = parseInt(ayt);
+                    return true;
+                default:
+                    return true;
+            }
+        }
+
+        function calculatePlan() {
+            if (!validateCurrentStep()) return;
+            
+            // Simplified calculation algorithm
+            const targetTytNet = Math.max(35, Math.floor(userData.targetRank / 150)); // Example calculation
+            const targetAytNet = Math.max(25, Math.floor(userData.targetRank / 200));
+            
+            const tytGap = Math.max(0, targetTytNet - userData.tytNet);
+            const aytGap = Math.max(0, targetAytNet - userData.aytNet);
+            
+            const totalGap = tytGap + aytGap;
+            const studyDaysPerWeek = userData.studyDays.length;
+            const weeksToExam = 12; // 3 months
+            const totalStudyDays = studyDaysPerWeek * weeksToExam;
+            
+            // Calculate questions needed per day
+            const questionsPerNet = 15; // Assumed questions needed per net improvement
+            const totalQuestions = totalGap * questionsPerNet;
+            const dailyQuestions = Math.max(20, Math.ceil(totalQuestions / totalStudyDays));
+            
+            userData.calculatedQuestions = dailyQuestions;
+            
+            // Update display
+            document.getElementById('calculatedQuestions').textContent = dailyQuestions;
+            document.getElementById('planExplanation').textContent = 
+                `${userData.targetRank} sıralama hedefin için TYT'de ${targetTytNet}, AYT'de ${targetAytNet} net yapman gerekiyor. 
+                Mevcut performansına göre günde ${dailyQuestions} soru çözerek 3 ayda hedefe ulaşabilirsin.`;
+            
+            nextStep();
+        }
+
+        function completeOnboarding() {
+            dailyGoal = userData.calculatedQuestions;
+            document.getElementById('dailyGoal').textContent = dailyGoal;
+            document.getElementById('questionSlider').max = dailyGoal;
+            
+            // Hide onboarding and show main app
+            document.getElementById('onboarding').classList.remove('active');
+            document.getElementById('home').classList.add('active');
+            
+            // Reset progress
+            currentSolved = 0;
+            document.getElementById('questionSlider').value = 0;
+            updateProgress();
+        }
+
+        // Day selector functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('day-selector')) {
+                const day = parseInt(e.target.dataset.day);
+                if (selectedDays.includes(day)) {
+                    selectedDays = selectedDays.filter(d => d !== day);
+                    e.target.classList.remove('selected');
+                } else {
+                    selectedDays.push(day);
+                    e.target.classList.add('selected');
+                }
+            }
+        });
+
+        // Initialize calendar
+        function initCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const daysOfWeek = ['P', 'S', 'Ç', 'P', 'C', 'C', 'P'];
+            const today = new Date().getDay();
+            const completedDays = [1, 2, 3, 5]; // Example completed days
+            
+            grid.innerHTML = '';
+            
+            daysOfWeek.forEach((day, index) => {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'calendar-day';
+                dayElement.textContent = day;
+                
+                if (index === today) {
+                    dayElement.classList.add('today');
+                }
+                
+                if (completedDays.includes(index)) {
+                    dayElement.classList.add('completed');
+                }
+                
+                grid.appendChild(dayElement);
+            });
+        }
+
+        // Update progress
+        function updateProgress() {
+            const percentage = Math.round((currentSolved / dailyGoal) * 100);
+            const circumference = 2 * Math.PI * 36;
+            const offset = circumference - (percentage / 100) * circumference;
+            
+            document.getElementById('progressText').textContent = `${percentage}%`;
+            document.getElementById('progressRing').style.strokeDashoffset = offset;
+            document.getElementById('solvedCount').textContent = currentSolved;
+            document.getElementById('remainingCount').textContent = Math.max(0, dailyGoal - currentSolved);
+        }
+
+        // Slider functionality
+        document.getElementById('questionSlider').addEventListener('input', function(e) {
+            currentSolved = parseInt(e.target.value);
+            updateProgress();
+        });
+
+        // Navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update active nav item
+            const navItems = document.querySelectorAll('.nav-item');
+            const pageMap = { 'home': 0, 'clubs': 1, 'progress': 2, 'profile': 3 };
+            if (pageMap[pageId] !== undefined) {
+                navItems[pageMap[pageId]].classList.add('active');
+            }
+        }
+
+        // Share question functionality
+        function shareQuestion() {
+            alert('Kamera açılıyor... Sorunun fotoğrafını çek veya galeriden seç!');
+        }
+
+        // Join club functionality
+        function joinClub(button) {
+            if (!button.classList.contains('joined')) {
+                button.textContent = 'Katıldın ✓';
+                button.classList.add('joined');
+                
+                // Show success animation
+                button.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    button.style.transform = 'scale(1)';
+                }, 200);
+            }
+        }
+
+        // Open club detail
+        function openClubDetail(clubId) {
+            document.getElementById('clubs').classList.remove('active');
+            document.getElementById('club-detail').classList.add('active');
+            
+            // Update club detail based on clubId
+            const titles = {
+                'night-study': '🌙 Gece Çalışanlar Kulübü',
+                'graduates': '🎓 Mezunlar Kulübü',
+                '500challenge': '⚡ 500 Soru Challenge',
+                'earlybirds': '🌅 Sabah Kuşları'
+            };
+            
+            if (titles[clubId]) {
+                document.getElementById('clubDetailTitle').textContent = titles[clubId];
+            }
+        }
+
+        // Create club modal functions
+        function openCreateClubModal() {
+            document.getElementById('createClubModal').classList.add('active');
+        }
+
+        function closeCreateClubModal() {
+            document.getElementById('createClubModal').classList.remove('active');
+        }
+
+        function selectClubType(element, type) {
+            document.querySelectorAll('.toggle-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        function createClub() {
+            alert('Kulüp başarıyla oluşturuldu! 🎉');
+            closeCreateClubModal();
+        }
+
+        // Social interactions
+        function toggleLike(element) {
+            element.classList.toggle('liked');
+            const likeText = element.querySelector('span:last-child');
+            if (element.classList.contains('liked')) {
+                likeText.textContent = 'Beğendin';
+            } else {
+                likeText.textContent = 'Beğen';
+            }
+        }
+
+        // Micro Info Functions
+        function toggleMicroInfo() {
+            const details = document.getElementById('microDetails');
+            const button = document.querySelector('.toggle-micro');
+            
+            if (details.classList.contains('active')) {
+                details.classList.remove('active');
+                button.textContent = 'Aç';
+            } else {
+                details.classList.add('active');
+                button.textContent = 'Kapat';
+            }
+        }
+
+        function toggleTopic(element) {
+            const topic = element.dataset.topic;
+            
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                selectedTopics = selectedTopics.filter(t => t !== topic);
+            } else {
+                element.classList.add('selected');
+                selectedTopics.push(topic);
+            }
+        }
+
+        function updatePerformance() {
+            const correct = parseInt(document.getElementById('correctCount').value) || 0;
+            const wrong = parseInt(document.getElementById('wrongCount').value) || 0;
+            const empty = parseInt(document.getElementById('emptyCount').value) || 0;
+            
+            const total = correct + wrong + empty;
+            
+            // Auto-update the main slider if total matches
+            if (total > 0) {
+                document.getElementById('questionSlider').value = total;
+                currentSolved = total;
+                updateProgress();
+            }
+
+            sessionData.correct = correct;
+            sessionData.wrong = wrong;
+            sessionData.empty = empty;
+        }
+
+        function saveSession() {
+            if (selectedTopics.length === 0) {
+                alert('Lütfen en az bir konu seçin! 📚');
+                return;
+            }
+
+            const total = sessionData.correct + sessionData.wrong + sessionData.empty;
+            if (total === 0) {
+                alert('Lütfen soru sayılarını girin! 🔢');
+                return;
+            }
+
+            sessionData.topics = [...selectedTopics];
+            
+            // Show success message
+            const saveBtn = document.getElementById('saveBtnText');
+            const originalText = saveBtn.textContent;
+            saveBtn.textContent = '✅ Kaydedildi!';
+            saveBtn.parentElement.style.background = '#10b981';
+            
+            setTimeout(() => {
+                saveBtn.textContent = originalText;
+                saveBtn.parentElement.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                
+                // Reset form
+                resetMicroForm();
+            }, 2000);
+
+            // Update progress analytics (simulated)
+            updateProgressAnalytics();
+        }
+
+        function resetMicroForm() {
+            document.querySelectorAll('.topic-chip.selected').forEach(chip => {
+                chip.classList.remove('selected');
+            });
+            
+            document.getElementById('correctCount').value = 0;
+            document.getElementById('wrongCount').value = 0;
+            document.getElementById('emptyCount').value = 0;
+            
+            selectedTopics = [];
+            sessionData = {
+                topics: [],
+                correct: 0,
+                wrong: 0,
+                empty: 0,
+                date: new Date().toISOString().split('T')[0]
+            };
+        }
+
+        function updateProgressAnalytics() {
+            // Update total stats (simulated)
+            const totalCorrect = document.getElementById('totalCorrect');
+            const totalWrong = document.getElementById('totalWrong');
+            const accuracyText = document.getElementById('accuracyText');
+            const accuracyRing = document.getElementById('accuracyRing');
+
+            let correct = parseInt(totalCorrect.textContent) + sessionData.correct;
+            let wrong = parseInt(totalWrong.textContent) + sessionData.wrong;
+            
+            totalCorrect.textContent = correct;
+            totalWrong.textContent = wrong;
+            
+            const accuracy = Math.round((correct / (correct + wrong)) * 100);
+            accuracyText.textContent = accuracy + '%';
+            
+            // Update ring
+            const circumference = 2 * Math.PI * 26;
+            const offset = circumference - (accuracy / 100) * circumference;
+            accuracyRing.style.strokeDashoffset = offset;
+        }
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            initCalendar();
+            updateProgress();
+            updateProgressDots();
+            
+            // Add some interactive animations
+            document.querySelectorAll('.stat-box, .club-card, .achievement-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    this.classList.add('pulse');
+                    setTimeout(() => {
+                        this.classList.remove('pulse');
+                    }, 1000);
+                });
+            });
+        });
+    </script>
+</body>
+</html>ring-bg {
+            fill: none;
+            stroke: #e5e7eb;
+            stroke-width: 4;
+        }
+
+        .accuracy-ring .
